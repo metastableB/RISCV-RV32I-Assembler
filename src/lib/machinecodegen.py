@@ -400,6 +400,10 @@ class MachineCodeGenerator:
 
     def convert_to_binary(self, tokens):
         '''
+        The driver function for converting tokens to machine code.
+        Takes the tokens parsed by the lexer and returns the
+        binary equivalent.
+
         Returns a touple (instr, dict),
         where instr is the binary string of the instruction
         and the dict is the tokens converted individually

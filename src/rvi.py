@@ -10,12 +10,14 @@ from lib.cprint import cprint as cp
 import argparse
 from pprint import pprint
 
+VERSION = 0.1
+
 
 def get_arguments():
     descr = '''
-    RVI -
-    A simple RV32I assembler developed for testing
-    RV32I targetted hardware designs.
+    RVI v''' + str(VERSION) + '''
+    - A simple RV32I assembler developed for testing
+    RV32I targeted hardware designs.
     '''
     ap = argparse.ArgumentParser(description=descr)
     ap.add_argument("INFILE", help="Input file containing assembly code.")
@@ -40,6 +42,8 @@ def get_arguments():
 def main():
     args = get_arguments()
     infile = args.INFILE
+    if args.version:
+        cp.cprint_msgb(str(VERSION))
     if args.no_color:
         cp.no_color = True
     if args.no_32:
