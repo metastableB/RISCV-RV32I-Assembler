@@ -33,6 +33,8 @@ def get_arguments():
     ap.add_argument('-t', '--tokenize', action="store_true",
                     help="Echo tokenized instructions to console" +
                     " for debugging.")
+    ap.add_argument("-es", "--echo-symbols", action="store_true",
+                    help="Echo the symbols table.")
     args = ap.parse_args()
     return args
 
@@ -40,7 +42,7 @@ def get_arguments():
 def main():
     args = get_arguments()
     infile = args.INFILE
-    parse_input(infile, args)
+    return parse_input(infile, **vars(args))
 
 
 if __name__ == '__main__':

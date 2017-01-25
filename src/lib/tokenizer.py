@@ -91,7 +91,7 @@ lexer = lex.lex()
 
 
 def reset_lineno():
-    lexer.lineno = 0
+    lexer.lineno = 1
 
 
 if __name__ == '__main__':

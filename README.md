@@ -92,7 +92,7 @@ The language I have codded for is similar to MIPS assembly and I have included s
 ## TODO
 - [ ] In the parser, for each statement, check if all the tokens are valid
 - [X] In parser, move immediate checking to different function (I Type)
-- [ ] recheck if the UJ type encoding is correct 
+- [ ] recheck if the all type encoding is correct [PRIORITY]
 - [ ] Write test suit
 - [ ] Support labels and label based jumps
 - [ ] Test with windows

@@ -29,7 +29,7 @@ class MachineCodeGenerator:
         try:
             r = int(r)
         except:
-            cp.print_fail("Internal Error: get_bin_register:" +
+            cp.cprint_fail("Internal Error: get_bin_register:" +
                           " Register could not be parsed")
         assert(r >= 0)
         assert(r < 32)

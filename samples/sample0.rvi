@@ -36,7 +36,8 @@ lui $22, 20000
 auipc $23, -20000
 
 # UJ Type Instruction
-jal $24, 32
+jal $24, RET1
+RET1:
 jal $24, 31
 
 # S Type
@@ -46,8 +47,8 @@ sh $29, $28, -11
 
 RET:
 	# SB Type
-	beq $25, $26, 300
-	bne $30, $30, 501
+	beq $25, $26, 55
+	bne $30, $30, RET
 	blt $30, $30, -900
 	bltu $31, $31, 400
 	bge $31, $0, -1
