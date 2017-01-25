@@ -71,7 +71,7 @@ def p_statement_I_S_SB(p):
                        ": Incorrect opcode or arguments")
         raise SyntaxError
     elif p[1] in mcc.INSTR_TYPE_I:
-        ret, imm, msg = get_imm_I(p)
+        ret, imm, msg = get_imm_I(p[6], p.lineno(6))
         if not ret:
             cp.cprint_fail("Error:" + str(p.lineno(6)) + ":" + msg)
             raise SyntaxError
@@ -84,7 +84,7 @@ def p_statement_I_S_SB(p):
             'lineno': p.lineno(1)
         }
     elif p[1] in mcc.INSTR_TYPE_S:
-        ret, imm, msg = get_imm_S(p)
+        ret, imm, msg = get_imm_S(p[6], p.lineno(6))
         if not ret:
             cp.cprint_fail("Error:" + str(p.lineno(1)) + ":" + msg)
             raise SyntaxError
@@ -117,7 +117,7 @@ def p_statement_U_UJ(p):
                        ": Incorrect opcode or arguments")
         raise SyntaxError
     elif p[1] in mcc.INSTR_TYPE_U:
-        ret, imm, msg = get_imm_U(p)
+        ret, imm, msg = get_imm_U(p[4], p.lineno(4))
         if not ret:
             cp.cprint_fail("Error:" + str(p.lineno(1)) + ":" + msg)
             raise SyntaxError
@@ -188,13 +188,12 @@ def p_statement_none(p):
     p[0] = None
 
 
-def get_imm_I(p):
-    imm = p[6]
+def get_imm_I(imm10, lineno):
     try:
-        imm10 = int(imm)
+        imm10 = int(imm10)
     except:
         msg = "Invalid immediate specified."
-        return False, imm, msg
+        return False, imm10, msg
     '''
     The I type immediates occur in all immediate arithmetic
     and logic operations, JALR, LW, LB, LH, LBU and LHU
@@ -222,7 +221,7 @@ def get_imm_I(p):
     IMM_MIN = -0b100000000000
 
     if (imm10 > IMM_MAX) or (imm10 < IMM_MIN):
-        cp.cprint_warn("Warning:" + str(p.lineno(1)) + ":" +
+        cp.cprint_warn("Warning:" + str(lineno) + ":" +
                        "Immediate is too big, will overflow.")
     # Conver to 2's complement binary
     imm2 = format(imm10 if imm10 >= 0 else (1 << 12) + imm10, '012b')
@@ -233,13 +232,12 @@ def get_imm_I(p):
     return True, imm2, p_statement_none
 
 
-def get_imm_U(p):
-    imm = p[4]
+def get_imm_U(imm10, lineno):
     try:
-        imm10 = int(imm)
+        imm10 = int(imm10)
     except:
         msg = "Invalid immediate specified."
-        return False, imm, msg
+        return False, imm10, msg
     '''
     The U type immediate occurs in LUI and AUIPC instructions.
     From the point of a compiler/assembler, there is nothing in
@@ -305,13 +303,12 @@ def get_imm_UJ(imm10, lineno):
     return True, shf_imm, None
 
 
-def get_imm_S(p):
-    imm = p[6]
+def get_imm_S(imm10, lineno):
     try:
-        imm10 = int(imm)
+        imm10 = int(imm10)
     except:
         msg = "Invalid immediate specified."
-        return False, imm, msg
+        return False, imm10, msg
     '''
     The S type encodes instructions SW, SB and SH.
     Similar to loads, SW, SB and SH the address offset is a signed 12 bit
@@ -331,12 +328,12 @@ def get_imm_S(p):
     IMM_MIN = -0b100000000000
 
     if (imm10 > IMM_MAX) or (imm10 < IMM_MIN):
-        cp.cprint_warn("Warning:" + str(p.lineno(1)) + ":" +
+        cp.cprint_warn("Warning:" + str(lineno) + ":" +
                        " Immediate is too big, will overflow.")
     # Convert to 2's complement binary
     imm2 = format(imm10 if imm10 >= 0 else (1 << 12) + imm10, '012b')
     if imm2[-1] != 0:
-        cp.cprint_warn("Warning:" + str(p.lineno(1)) + ":" +
+        cp.cprint_warn("Warning:" + str(lineno) + ":" +
                        "Immediate not 2 bytes aligned. Last bit will" +
                        "be dropped.")
     imm2 = imm2[0:12]
@@ -370,6 +367,10 @@ def get_imm_SB(imm10, lineno):
                        "Immediate is too big, will overflow.")
     # Convert to 2's complement binary
     imm2 = format(imm10 if imm10 >= 0 else (1 << 13) + imm10, '013b')
+    if imm2[-1] != '0':
+        cp.cprint_warn("Warning:" + str(lineno) + ":" +
+                       "Immediate not 2 bytes aligned. Last bit will" +
+                       "be dropped.")
     imm2 = imm2[0:12]
     # Convert immediate back to base 10 from base 2
     # p[0] = int(imm2, 2)
@@ -510,8 +511,6 @@ def parse_pass_two(fin, fout, symbols_table, args):
         instr = None
         result = result['tokens']
         if 'label' in result:
-            print("LABEL FOUND")
-            print(result)
             if result['label'] not in symbols_table:
                 cp.cprint_fail("Error: " + str(result['lineno']) +
                                " : Label used but never defined '" +

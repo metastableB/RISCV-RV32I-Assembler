@@ -155,7 +155,7 @@ class MachineCodeGenerator:
         assert(len(bin_str) == 32)
 
         if imm[-2:] != '00':
-            cp.cprint_warn_32("Warning-32:" + str(tokens['lineno']) +
+            cp.cprint_warn_32("32_Warning:" + str(tokens['lineno']) +
                               ": Missaligned address." +
                               " Address should be 4 bytes aligned.")
 
@@ -196,8 +196,8 @@ class MachineCodeGenerator:
 
         bin_str = imm_12_10_5 + bin_rs2 + bin_rs1 + funct3
         bin_str += imm_4_1_11 + bin_opcode
-        if imm_4_1_11[-3:-1] != '00':
-            cp.cprint_warn_32("Warning-32:" + str(tokens['lineno']) +
+        if imm_4_1_11[-2] != '0':
+            cp.cprint_warn_32("32_Warning:" + str(tokens['lineno']) +
                               ": Missaligned address." +
                               " Address should be 4 bytes aligned.")
         assert(len(bin_str) == 32)
@@ -243,7 +243,7 @@ class MachineCodeGenerator:
         assert(len(bin_str) == 32)
 
         if imm[-2:] != '00':
-            cp.cprint_warn_32("Warning-32:" + str(tokens['lineno']) +
+            cp.cprint_warn_32("32_Warning:" + str(tokens['lineno']) +
                               ": Missaligned address." +
                               " Address should be 4 bytes aligned.")
 
@@ -286,7 +286,7 @@ class MachineCodeGenerator:
         assert(len(bin_str) == 32)
 
         if imm_4_0[-2:] != '00':
-            cp.cprint_warn_32("Warning-32:" + str(tokens['lineno']) +
+            cp.cprint_warn_32("32_Warning:" + str(tokens['lineno']) +
                               ": Missaligned address." +
                               " Address should be 4 bytes aligned.")
 

@@ -13,6 +13,7 @@ START :
 	jalr $19, $20, 2 # misaligned, generaets warning
 	lw $20, $21, 22 # misaligned, generaets warning
 	lb $22, $23, 34 # misaligned, generaets warning
+	lb $22, $23, 32 # misaligned, generaets warning
 	lh $24, $25, -4
 	lbu $26, $27, -8
 	lhu $27, $28, -9 # misaligned, generaets warning
@@ -52,4 +53,5 @@ RET:
 	blt $30, $30, -900
 	bltu $31, $31, 400
 	bge $31, $0, -1
+	bge $31, $0, -2
 	bgeu $2, $3, 600
