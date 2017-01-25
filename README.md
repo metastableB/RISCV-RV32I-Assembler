@@ -90,13 +90,14 @@ The language I have codded for is similar to MIPS assembly and I have included s
 **WARNING** I have not tested how the assembler behaves in Windows line endings. I have tried to make sure this does not become a problem but in case you face any problem, please use an editor which supports UNIX file ending like *notepad++* or *sublimetext* and raise an issue regarding the same.
 
 ## TODO
-- [ ] In the parser, for each statement, check if all the tokens are valid
+- [X] In the parser, for each statement, check if all the tokens are valid
 - [X] In parser, move immediate checking to different function (I Type)
-- [ ] recheck if the all type encoding is correct [PRIORITY]
+- [X] recheck if the all type encoding is correct [PRIORITY]
 - [ ] Write test suit
-- [ ] Support labels and label based jumps
+- [X] Support labels and label based jumps
 - [ ] Test with windows
 - [ ] Support turning on and off of instruction selectively
+- [X] Implement `jalr`
 
 Don Dennis,
 2016
