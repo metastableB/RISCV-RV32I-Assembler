@@ -8,8 +8,11 @@ import ply.yacc as yacc
 import sys
 # This is required by design
 from lib.tokenizer import tokens
-from lib.machinecodeconst import MachineCodeConst
+from lib.tokenizer import reset_lineno
+from lib.machinecodegen import mcg
 from lib.cprint import cprint as cp
+from lib.machinecodeconst import MachineCodeConst
+from pprint import pprint
 
 mcc = MachineCodeConst()
 '''
@@ -362,9 +365,89 @@ def p_error(p):
                        "Did you end with a newline?")
 
 
-# Two instances of parsers are required for
-# the two passes requierd
 parser = yacc.yacc()
+
+
+def parse_input(infile, args):
+    if args.no_color:
+        cp.no_color = True
+    if args.no_32:
+        cp.warn32 = False
+    fin = None
+    try:
+        fin = open(infile, 'r')
+    except IOError:
+        cp.cprint_fail("Error: File does not seem to exist or" +
+                       " you do not have the required permissions.")
+        return 1
+
+    outfile = args.outfile
+    fout = None
+    try:
+        fout = open(outfile, 'w')
+    except IOError:
+        cp.cprint_fail("Error: Could not create '" + outfile + "' for output")
+        return 1
+
+    # Pass 1: Address resolution of labels
+    address = 0
+    symbol_table = {}
+    # Suppress instruction warnings
+    prev_warn = cp.warn
+    prev_warn32 = cp.warn32
+    cp.warn = False
+    cp.warn32 = False
+    for line in fin:
+        result = parser.parse(line)
+        if result["TOKENS"] is None:
+            continue
+
+        if result["TYPE"] is 'NON_LABEL':
+            address += 4
+            continue
+
+        if not result["TOKENS"] in symbol_table:
+            symbol_table[result["TOKENS"]] = address
+        else:
+            cp.cprint_fail("Error: " + str(result['lineno']) +
+                           " : Redeclaration of label '" +
+                           str(result['TOKENS']) + "'.")
+            exit(1)
+    # Restore warning state
+    cp.warn = prev_warn
+    cp.warn32 = prev_warn32
+    fin.seek(0, 0)
+    # Reset line number state
+    reset_lineno()
+    # Pass 2: Mapping instructions to binary coding
+    for line in fin:
+        result = parser.parse(line)
+        if result["TOKENS"] is None:
+            continue
+
+        if result["TYPE"] is 'LABEL':
+            continue
+
+        instr = None
+        result = result['TOKENS']
+        if result:
+            instr, instr_dict = mcg.convert_to_binary(result)
+        if not instr:
+            continue
+
+        # Use hex instead of binary
+        if args.hex:
+            instr = '%08X' % int(instr, 2)
+        # Echo to console
+        if args.echo:
+            cp.cprint_msgb(str(result['lineno']) + " " + str(instr))
+        if args.tokenize:
+            pprint(instr_dict)
+
+        fout.write(instr + '\n')
+
+    fout.close()
+    fin.close()
 
 
 def main():
