@@ -28,7 +28,19 @@ need to recursively define the program interms of statements
 
 def p_program_statement(p):
     'program : statement'
-    p[0] = p[1]
+    p[0] = {
+        'TYPE': 'NON_LABEL',
+        'TOKENS': p[1]
+    }
+
+
+def p_program_label(p):
+    'program : LABEL COLUMN NEWLINE'
+    p[0] = {
+        'TYPE': 'LABEL',
+        'TOKENS': p[1],
+        'lineno': p.lineno(1)
+    }
 
 
 def p_statement_R(p):

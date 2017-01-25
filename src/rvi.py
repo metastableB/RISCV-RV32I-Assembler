@@ -42,8 +42,7 @@ def get_arguments():
 def main():
     args = get_arguments()
     infile = args.INFILE
-    if args.version:
-        cp.cprint_msgb(str(VERSION))
+
     if args.no_color:
         cp.no_color = True
     if args.no_32:
@@ -64,27 +63,51 @@ def main():
         cp.cprint_fail("Error: Could not create '" + outfile + "' for output")
         return 1
 
+    address = 0
+    symbol_table = {}
+    # Pass 1: Address resolution of labels
     for line in fin:
         result = parser.parse(line)
-        instr = None
-        if result:
-            instr, instr_dict = mcg.convert_to_binary(result)
-        if not instr:
+        if result["TOKENS"] is None:
             continue
 
-        # Use hex instead of binary
-        if args.hex:
-            instr = '%08X' % int(instr, 2)
-        # Echo to console
-        if args.echo:
-            cp.cprint_msgb(str(result['lineno']) + " " + str(instr))
-        if args.tokenize:
-            pprint(instr_dict)
+        if result["TYPE"] is 'NON_LABEL':
+            address += 4
+            continue
 
-        fout.write(instr + '\n')
+        if not result["TOKENS"] in symbol_table:
+            symbol_table[result["TOKENS"]] = address
+        else:
+            cp.cprint_fail("Error: " + str(result['lineno']) +
+                           " : Redeclaration of label '" +
+                           str(result['TOKENS']) + "'.")
+            exit(1)
+
     fout.close()
     fin.close()
 
 
 if __name__ == '__main__':
     main()
+
+
+# Pass 2: Mapping instructions to binary coding
+# for line in fin:
+
+#     continue
+#     instr = None
+#     if result:
+#         instr, instr_dict = mcg.convert_to_binary(result)
+#     if not instr:
+#         continue
+
+#     # Use hex instead of binary
+#     if args.hex:
+#         instr = '%08X' % int(instr, 2)
+#     # Echo to console
+#     if args.echo:
+#         cp.cprint_msgb(str(result['lineno']) + " " + str(instr))
+#     if args.tokenize:
+#         pprint(instr_dict)
+
+#    fout.write(instr + '\n')
