@@ -362,6 +362,8 @@ def p_error(p):
                        "Did you end with a newline?")
 
 
+# Two instances of parsers are required for
+# the two passes requierd
 parser = yacc.yacc()
 
 

@@ -5,6 +5,7 @@
 # The RISC-V assembler for subset of instructions.
 
 from lib.parser import parser
+from lib.tokenizer import reset_lineno
 from lib.machinecodegen import mcg
 from lib.cprint import cprint as cp
 import argparse
@@ -63,9 +64,14 @@ def main():
         cp.cprint_fail("Error: Could not create '" + outfile + "' for output")
         return 1
 
+    # Pass 1: Address resolution of labels
     address = 0
     symbol_table = {}
-    # Pass 1: Address resolution of labels
+    # Suppress instruction warnings
+    prev_warn = cp.warn
+    prev_warn32 = cp.warn32
+    cp.warn = False
+    cp.warn32 = False
     for line in fin:
         result = parser.parse(line)
         if result["TOKENS"] is None:
@@ -82,6 +88,38 @@ def main():
                            " : Redeclaration of label '" +
                            str(result['TOKENS']) + "'.")
             exit(1)
+    # Restore warning state
+    cp.warn = prev_warn
+    cp.warn32 = prev_warn32
+    fin.seek(0, 0)
+    # Reset line number state
+    reset_lineno()
+    # Pass 2: Mapping instructions to binary coding
+    for line in fin:
+        result = parser.parse(line)
+        if result["TOKENS"] is None:
+            continue
+
+        if result["TYPE"] is 'LABEL':
+            continue
+
+        instr = None
+        result = result['TOKENS']
+        if result:
+            instr, instr_dict = mcg.convert_to_binary(result)
+        if not instr:
+            continue
+
+        # Use hex instead of binary
+        if args.hex:
+            instr = '%08X' % int(instr, 2)
+        # Echo to console
+        if args.echo:
+            cp.cprint_msgb(str(result['lineno']) + " " + str(instr))
+        if args.tokenize:
+            pprint(instr_dict)
+
+        fout.write(instr + '\n')
 
     fout.close()
     fin.close()

@@ -89,6 +89,11 @@ def t_error(t):
 # Build the lexer
 lexer = lex.lex()
 
+
+def reset_lineno():
+    lexer.lineno = 0
+
+
 if __name__ == '__main__':
     lex.runmain()
 

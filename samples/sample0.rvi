@@ -17,7 +17,7 @@ START :
 	lbu $26, $27, -8
 	lhu $27, $28, -9 # misaligned, generaets warning
 
-START:
+LH_:
 	# R Type instructions
 	add $29, $30, $31
 	slt $0, $1, $2
