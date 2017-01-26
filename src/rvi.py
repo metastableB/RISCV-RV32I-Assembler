@@ -47,25 +47,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-# Pass 2: Mapping instructions to binary coding
-# for line in fin:
-
-#     continue
-#     instr = None
-#     if result:
-#         instr, instr_dict = mcg.convert_to_binary(result)
-#     if not instr:
-#         continue
-
-#     # Use hex instead of binary
-#     if args.hex:
-#         instr = '%08X' % int(instr, 2)
-#     # Echo to console
-#     if args.echo:
-#         cp.cprint_msgb(str(result['lineno']) + " " + str(instr))
-#     if args.tokenize:
-#         pprint(instr_dict)
-
-#    fout.write(instr + '\n')

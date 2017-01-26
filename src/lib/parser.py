@@ -156,19 +156,29 @@ def p_statement_UJ_LABEL(p):
         }
 
 
-def p_statement_SB_LABEL(p):
+def p_statement_SB__JALR_LABEL(p):
     'statement : OPCODE register COMMA register COMMA LABEL NEWLINE'
-    if (p[1] not in mcc.INSTR_TYPE_SB):
+    # Branch and JALR
+    if (p[1] not in mcc.INSTR_TYPE_SB) and (p[1] != mcc.INSTR_JALR):
         cp.cprint_fail("Error:" + str(p.lineno(1)) +
                        ": Incorrect opcode or arguments")
         raise SyntaxError
-    p[0] = {
-        'opcode': p[1],
-        'rs1': p[2],
-        'rs2': p[4],
-        'label': p[6],
-        'lineno': p.lineno(1)
-    }
+    if p[1] in mcc.INSTR_TYPE_SB:
+        p[0] = {
+            'opcode': p[1],
+            'rs1': p[2],
+            'rs2': p[4],
+            'label': p[6],
+            'lineno': p.lineno(1)
+        }
+    elif p[1] == mcc.INSTR_JALR:
+        p[0] = {
+            'opcode': p[1],
+            'rd': p[2],
+            'rs1': p[4],
+            'label': p[6],
+            'lineno': p.lineno(1)
+        }
 
 
 def p_register(p):
@@ -413,19 +423,12 @@ def encode_offset(ltokens, address, target):
     assert(offset % 2 == 0)
     lineno = ltokens['lineno']
     if ltokens['opcode'] == mcc.INSTR_JAL:
-        '''
-        The immediate is 20 bits long and encodes the offset
-        in multiples of two - meaning that the lowest bit is
-        assumed to be 0. That is, 4 (0100) will be encoded as
-        (0010).
-        The immediate is added to PC to get the target address
-        '''
         ret, imm, msg = get_imm_UJ(offset, lineno)
         if not ret:
             # Label translation should not raise errors,
             # Warnings make sense.
             cp.cprint_fail("Internal error:" +
-                          str(tokens['lineno']) + ":" + msg)
+                           str(tokens['lineno']) + ":" + msg)
             exit(1)
         result = {
             'opcode': ltokens['opcode'],
@@ -443,6 +446,19 @@ def encode_offset(ltokens, address, target):
             'opcode': ltokens['opcode'],
             'rs1': ltokens['rs1'],
             'rs2': ltokens['rs2'],
+            'imm': imm,
+            'lineno': lineno
+        }
+    elif ltokens['opcode'] == mcc.INSTR_JALR:
+        ret, imm, msg = get_imm_I(offset, lineno)
+        if not ret:
+            cp.cprint_fail("Error:" + str(lineno) + ":" + msg)
+            raise SyntaxError
+
+        result = {
+            'opcode': ltokens['opcode'],
+            'rd': ltokens['rd'],
+            'rs1': ltokens['rs1'],
             'imm': imm,
             'lineno': lineno
         }
@@ -530,6 +546,7 @@ def parse_pass_two(fin, fout, symbols_table, args):
         if args['echo']:
             cp.cprint_msgb(str(result['lineno']) + " " + str(instr))
         if args['tokenize']:
+            cp.cprint_msgb(str(result['lineno']))
             pprint(instr_dict)
 
         fout.write(instr + '\n')
@@ -572,8 +589,8 @@ def main():
     try:
         fin = open(sys.argv[1], 'r')
     except IOError:
-        cprint.cprint_fail("File does not seem to exist or" +
-              " you do not have the required permissions.")
+        cp.cprint_fail("File does not seem to exist or" +
+                       " you do not have the required permissions.")
         return 1
 
     for line in fin:
