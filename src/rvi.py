@@ -4,18 +4,18 @@
 #
 # The RISC-V assembler for subset of instructions.
 
-from lib.parser import parser
-from lib.machinecodegen import mcg
-from lib.cprint import cprint as cp
+from lib.parser import parse_input
 import argparse
-from pprint import pprint
+
+
+VERSION = 0.1
 
 
 def get_arguments():
     descr = '''
-    RVI -
-    A simple RV32I assembler developed for testing
-    RV32I targetted hardware designs.
+    RVI v''' + str(VERSION) + '''
+    - A simple RV32I assembler developed for testing
+    RV32I targeted hardware designs.
     '''
     ap = argparse.ArgumentParser(description=descr)
     ap.add_argument("INFILE", help="Input file containing assembly code.")
@@ -33,6 +33,8 @@ def get_arguments():
     ap.add_argument('-t', '--tokenize', action="store_true",
                     help="Echo tokenized instructions to console" +
                     " for debugging.")
+    ap.add_argument("-es", "--echo-symbols", action="store_true",
+                    help="Echo the symbols table.")
     args = ap.parse_args()
     return args
 
@@ -40,47 +42,30 @@ def get_arguments():
 def main():
     args = get_arguments()
     infile = args.INFILE
-    if args.no_color:
-        cp.no_color = True
-    if args.no_32:
-        cp.warn32 = False
-    fin = None
-    try:
-        fin = open(infile, 'r')
-    except IOError:
-        cp.cprint_fail("Error: File does not seem to exist or" +
-                       " you do not have the required permissions.")
-        return 1
-
-    outfile = args.outfile
-    fout = None
-    try:
-        fout = open(outfile, 'w')
-    except IOError:
-        cp.cprint_fail("Error: Could not create '" + outfile + "' for output")
-        return 1
-
-    for line in fin:
-        result = parser.parse(line)
-        instr = None
-        if result:
-            instr, instr_dict = mcg.convert_to_binary(result)
-        if not instr:
-            continue
-
-        # Use hex instead of binary
-        if args.hex:
-            instr = '%08X' % int(instr, 2)
-        # Echo to console
-        if args.echo:
-            cp.cprint_msgb(str(result['lineno']) + " " + str(instr))
-        if args.tokenize:
-            pprint(instr_dict)
-
-        fout.write(instr + '\n')
-    fout.close()
-    fin.close()
+    return parse_input(infile, **vars(args))
 
 
 if __name__ == '__main__':
     main()
+
+
+# Pass 2: Mapping instructions to binary coding
+# for line in fin:
+
+#     continue
+#     instr = None
+#     if result:
+#         instr, instr_dict = mcg.convert_to_binary(result)
+#     if not instr:
+#         continue
+
+#     # Use hex instead of binary
+#     if args.hex:
+#         instr = '%08X' % int(instr, 2)
+#     # Echo to console
+#     if args.echo:
+#         cp.cprint_msgb(str(result['lineno']) + " " + str(instr))
+#     if args.tokenize:
+#         pprint(instr_dict)
+
+#    fout.write(instr + '\n')

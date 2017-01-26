@@ -16,6 +16,8 @@ class CPrint:
     UNDERLINE = '\033[4m'
     warn32 = True
     no_color = False
+    warn = True
+    fail = True
 
     def cprint_cus(self, bc, msg):
         s = bc
@@ -38,10 +40,12 @@ class CPrint:
         self.cprint_cus(self.OKBLUE, msg)
 
     def cprint_warn(self, msg):
-        self.cprint_cus(self.WARNING, msg)
+        if self.warn:
+            self.cprint_cus(self.WARNING, msg)
 
     def cprint_fail(self, msg):
-        self.cprint_cus(self.BOLD + self.FAIL, msg)
+        if self.fail:
+            self.cprint_cus(self.BOLD + self.FAIL, msg)
 
     def cprint_warn_32(self, msg):
         if self.warn32:

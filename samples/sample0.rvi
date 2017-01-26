@@ -1,39 +1,44 @@
 # I Type instructions
 # any line that starts with # are comments
-addi $1, $2, -2045000 # Overflow warning
-slti $3, $4, 22
-sltiu $5, $6, -44
-andi $7, $8, 79
-ori $9, $10, -123
-xori $11, $12, 20 # Generates a warning (upper 7 bits need to be 0)
-slli $13, $14, 05 
-srli $15, $16, 001
-srai $17, $18, -0011
-jalr $19, $20, 2 # misaligned, generaets warning
-lw $20, $21, 22 # misaligned, generaets warning
-lb $22, $23, 34 # misaligned, generaets warning
-lh $24, $25, -4
-lbu $26, $27, -8
-lhu $27, $28, -9 # misaligned, generaets warning
+START : 
+	addi $1, $2, -2045000 # Overflow warning
+	slti $3, $4, 22
+	sltiu $5, $6, -44
+	andi $7, $8, 79
+	ori $9, $10, -123
+	xori $11, $12, 20 # Generates a warning (upper 7 bits need to be 0)
+	slli $13, $14, 05 
+	srli $15, $16, 001
+	srai $17, $18, -0011
+	jalr $19, $20, 2 # misaligned, generaets warning
+	lw $20, $21, 22 # misaligned, generaets warning
+	lb $22, $23, 34 # misaligned, generaets warning
+	lb $22, $23, 32 # misaligned, generaets warning
+	lh $24, $25, -4
+	lbu $26, $27, -8
+	lhu $27, $28, -9 # misaligned, generaets warning
 
-# R Type instructions
-add $29, $30, $31
-slt $0, $1, $2
-sltu $3, $4, $5
-and $6, $7, $8
-or $9, $10, $11
-xor $10, $11, $12
-sll $13, $14, $15
-srl $15, $15, $15
-sub $16, $17, $18
-sra $19, $20, $21
+LH_:
+	# R Type instructions
+	add $29, $30, $31
+	slt $0, $1, $2
+	sltu $3, $4, $5
+	and $6, $7, $8
+	or $9, $10, $11
+	xor $10, $11, $12
+	sll $13, $14, $15
+HEL:	
+	srl $15, $15, $15
+	sub $16, $17, $18
+	sra $19, $20, $21
 
 # U Type instructions
 lui $22, 20000
 auipc $23, -20000
 
 # UJ Type Instruction
-jal $24, 32
+jal $24, RET1
+RET1:
 jal $24, 31
 
 # S Type
@@ -41,10 +46,12 @@ sw $25, $26, 200
 sb $27, $29, -201
 sh $29, $28, -11
 
-# SB Type
-beq $25, $26, 300
-bne $30, $30, 501
-blt $30, $30, -900
-bltu $31, $31, 400
-bge $31, $0, -1
-bgeu $2, $3, 600
+RET:
+	# SB Type
+	beq $25, $26, 55
+	bne $30, $30, RET
+	blt $30, $30, -900
+	bltu $31, $31, 400
+	bge $31, $0, -1
+	bge $31, $0, -2
+	bgeu $2, $3, 600

@@ -46,6 +46,19 @@ class MachineCodeConst:
     INSTR_OR = 'or'
     INSTR_AND = 'and'
 
+    # All reserved opcodes
+    ALL_INSTR = [INSTR_LUI, INSTR_AUIPC, INSTR_JAL,
+                 INSTR_JALR, INSTR_BEQ, INSTR_BNE, INSTR_BLT,
+                 INSTR_BGE, INSTR_BLTU, INSTR_BGEU, INSTR_LB,
+                 INSTR_LH, INSTR_LW, INSTR_LBU, INSTR_LHU,
+                 INSTR_SB, INSTR_SH, INSTR_SW, INSTR_ADDI,
+                 INSTR_SLTI, INSTR_SLTIU, INSTR_XORI,
+                 INSTR_ORI, INSTR_ANDI, INSTR_SLLI,
+                 INSTR_SRLI, INSTR_SRAI, INSTR_ADD,
+                 INSTR_SUB, INSTR_SLL, INSTR_SLT,
+                 INSTR_SLTU, INSTR_XOR, INSTR_SRL,
+                 INSTR_SRA, INSTR_OR, INSTR_AND
+                 ]
     # All instruction in a type
     INSTR_TYPE_U = [INSTR_LUI, INSTR_AUIPC]
     INSTR_TYPE_UJ = [INSTR_JAL]

@@ -8,8 +8,11 @@ import ply.yacc as yacc
 import sys
 # This is required by design
 from lib.tokenizer import tokens
-from lib.machinecodeconst import MachineCodeConst
+from lib.tokenizer import reset_lineno
+from lib.machinecodegen import mcg
 from lib.cprint import cprint as cp
+from lib.machinecodeconst import MachineCodeConst
+from pprint import pprint
 
 mcc = MachineCodeConst()
 '''
@@ -28,7 +31,22 @@ need to recursively define the program interms of statements
 
 def p_program_statement(p):
     'program : statement'
-    p[0] = p[1]
+    p[0] = {
+        'type': 'non_label',
+        'tokens': p[1]
+    }
+
+
+def p_program_label(p):
+    'program : LABEL COLUMN NEWLINE'
+    dict = {
+        'label': p[1],
+        'lineno': p.lineno(1)
+    }
+    p[0] = {
+        'type': 'label',
+        'tokens': dict
+    }
 
 
 def p_statement_R(p):
@@ -53,9 +71,9 @@ def p_statement_I_S_SB(p):
                        ": Incorrect opcode or arguments")
         raise SyntaxError
     elif p[1] in mcc.INSTR_TYPE_I:
-        ret, imm, msg = get_imm_I(p)
+        ret, imm, msg = get_imm_I(p[6], p.lineno(6))
         if not ret:
-            cp.print_fail("Error:" + str(p.lineno(6)) + ":" + msg)
+            cp.cprint_fail("Error:" + str(p.lineno(6)) + ":" + msg)
             raise SyntaxError
 
         p[0] = {
@@ -66,9 +84,9 @@ def p_statement_I_S_SB(p):
             'lineno': p.lineno(1)
         }
     elif p[1] in mcc.INSTR_TYPE_S:
-        ret, imm, msg = get_imm_S(p)
+        ret, imm, msg = get_imm_S(p[6], p.lineno(6))
         if not ret:
-            cp.print_fail("Error:" + str(p.lineno(1)) + ":" + msg)
+            cp.cprint_fail("Error:" + str(p.lineno(1)) + ":" + msg)
             raise SyntaxError
         p[0] = {
             'opcode': p[1],
@@ -78,9 +96,9 @@ def p_statement_I_S_SB(p):
             'lineno': p.lineno(1)
         }
     else:  # SB (BRANCH)
-        ret, imm, msg = get_imm_SB(p)
+        ret, imm, msg = get_imm_SB(p[6], p.lineno(6))
         if not ret:
-            cp.print_fail("Error:" + str(p.lineno(1)) + ":" + msg)
+            cp.cprint_fail("Error:" + str(p.lineno(1)) + ":" + msg)
             raise SyntaxError
         p[0] = {
             'opcode': p[1],
@@ -99,9 +117,9 @@ def p_statement_U_UJ(p):
                        ": Incorrect opcode or arguments")
         raise SyntaxError
     elif p[1] in mcc.INSTR_TYPE_U:
-        ret, imm, msg = get_imm_U(p)
+        ret, imm, msg = get_imm_U(p[4], p.lineno(4))
         if not ret:
-            cp.print_fail("Error:" + str(p.lineno(1)) + ":" + msg)
+            cp.cprint_fail("Error:" + str(p.lineno(1)) + ":" + msg)
             raise SyntaxError
         p[0] = {
             'opcode': p[1],
@@ -110,9 +128,9 @@ def p_statement_U_UJ(p):
             'lineno': p.lineno(1)
         }
     else:  # UJ Type
-        ret, imm, msg = get_imm_UJ(p)
+        ret, imm, msg = get_imm_UJ(p[4], p.lineno(4))
         if not ret:
-            cp.print_fail("Error:" + str(p.lineno(1)) + ":" + msg)
+            cp.cprint_fail("Error:" + str(p.lineno(1)) + ":" + msg)
             raise SyntaxError
         p[0] = {
             'opcode': p[1],
@@ -120,6 +138,37 @@ def p_statement_U_UJ(p):
             'imm': imm,
             'lineno': p.lineno(1)
         }
+
+
+def p_statement_UJ_LABEL(p):
+    'statement : OPCODE register COMMA LABEL NEWLINE'
+
+    if (p[1] not in mcc.INSTR_TYPE_UJ):
+        cp.cprint_fail("Error:" + str(p.lineno(1)) +
+                       ": Incorrect opcode or arguments")
+        raise SyntaxError
+    else:  # UJ Type
+        p[0] = {
+            'opcode': p[1],
+            'rd': p[2],
+            'label': p[4],
+            'lineno': p.lineno(1)
+        }
+
+
+def p_statement_SB_LABEL(p):
+    'statement : OPCODE register COMMA register COMMA LABEL NEWLINE'
+    if (p[1] not in mcc.INSTR_TYPE_SB):
+        cp.cprint_fail("Error:" + str(p.lineno(1)) +
+                       ": Incorrect opcode or arguments")
+        raise SyntaxError
+    p[0] = {
+        'opcode': p[1],
+        'rs1': p[2],
+        'rs2': p[4],
+        'label': p[6],
+        'lineno': p.lineno(1)
+    }
 
 
 def p_register(p):
@@ -139,13 +188,12 @@ def p_statement_none(p):
     p[0] = None
 
 
-def get_imm_I(p):
-    imm = p[6]
+def get_imm_I(imm10, lineno):
     try:
-        imm10 = int(imm)
+        imm10 = int(imm10)
     except:
         msg = "Invalid immediate specified."
-        return False, imm, msg
+        return False, imm10, msg
     '''
     The I type immediates occur in all immediate arithmetic
     and logic operations, JALR, LW, LB, LH, LBU and LHU
@@ -173,7 +221,7 @@ def get_imm_I(p):
     IMM_MIN = -0b100000000000
 
     if (imm10 > IMM_MAX) or (imm10 < IMM_MIN):
-        cp.cprint_warn("Warning:" + str(p.lineno(1)) + ":" +
+        cp.cprint_warn("Warning:" + str(lineno) + ":" +
                        "Immediate is too big, will overflow.")
     # Conver to 2's complement binary
     imm2 = format(imm10 if imm10 >= 0 else (1 << 12) + imm10, '012b')
@@ -184,13 +232,12 @@ def get_imm_I(p):
     return True, imm2, p_statement_none
 
 
-def get_imm_U(p):
-    imm = p[4]
+def get_imm_U(imm10, lineno):
     try:
-        imm10 = int(imm)
+        imm10 = int(imm10)
     except:
         msg = "Invalid immediate specified."
-        return False, imm, msg
+        return False, imm10, msg
     '''
     The U type immediate occurs in LUI and AUIPC instructions.
     From the point of a compiler/assembler, there is nothing in
@@ -212,13 +259,12 @@ def get_imm_U(p):
     return True, imm2, None
 
 
-def get_imm_UJ(p):
-    imm = p[4]
+def get_imm_UJ(imm10, lineno):
     try:
-        imm10 = int(imm)
+        imm10 = int(imm10)
     except:
         msg = "Invalid immediate specified."
-        return False, imm, msg
+        return False, imm10, msg
     '''
     The UJ Type immediate encodes a 2 byte aligned address.
     Hence its last bit has to be zero. We do not encode this
@@ -238,12 +284,12 @@ def get_imm_UJ(p):
     IMM_MIN = -0b100000000000000000000
 
     if (imm10 > IMM_MAX) or (imm10 < IMM_MIN):
-        cp.cprint_warn("Warning:" + str(p.lineno(1)) + ":" +
+        cp.cprint_warn("Warning:" + str(lineno) + ":" +
                        "Immediate is too big, will overflow.")
     # Conver to 2's complement binary
     imm2 = format(imm10 if imm10 >= 0 else (1 << 21) + imm10, '021b')
     if imm2[-1:] != '0':
-        cp.cprint_warn("Warning:" + str(p.lineno(1)) + ":" +
+        cp.cprint_warn("Warning:" + str(lineno) + ":" +
                        "Immediate not 2 bytes aligned. Last bit will" +
                        "be dropped.")
     imm2 = imm2[0:-1]
@@ -252,18 +298,17 @@ def get_imm_UJ(p):
     # imm[20] imm[10:1] imm[11] imm[19:12]
     # Indexing in reverse order
     # imm[20] in is imm2[0] = imm2[-20] of imm string
-    shf_imm = imm2[-20] + imm2[-10:] + imm2[-11] + imm2[-19:-11]
+    shf_imm = imm2[0] + imm2[10:20] + imm2[9] + imm2[1:9]
     assert(len(shf_imm) == 20)
     return True, shf_imm, None
 
 
-def get_imm_S(p):
-    imm = p[6]
+def get_imm_S(imm10, lineno):
     try:
-        imm10 = int(imm)
+        imm10 = int(imm10)
     except:
         msg = "Invalid immediate specified."
-        return False, imm, msg
+        return False, imm10, msg
     '''
     The S type encodes instructions SW, SB and SH.
     Similar to loads, SW, SB and SH the address offset is a signed 12 bit
@@ -283,12 +328,12 @@ def get_imm_S(p):
     IMM_MIN = -0b100000000000
 
     if (imm10 > IMM_MAX) or (imm10 < IMM_MIN):
-        cp.cprint_warn("Warning:" + str(p.lineno(1)) + ":" +
+        cp.cprint_warn("Warning:" + str(lineno) + ":" +
                        " Immediate is too big, will overflow.")
     # Convert to 2's complement binary
     imm2 = format(imm10 if imm10 >= 0 else (1 << 12) + imm10, '012b')
     if imm2[-1] != 0:
-        cp.cprint_warn("Warning:" + str(p.lineno(1)) + ":" +
+        cp.cprint_warn("Warning:" + str(lineno) + ":" +
                        "Immediate not 2 bytes aligned. Last bit will" +
                        "be dropped.")
     imm2 = imm2[0:12]
@@ -301,13 +346,12 @@ def get_imm_S(p):
     return True, (imm_11_5, imm_4_0), p_statement_none
 
 
-def get_imm_SB(p):
-    imm = p[6]
+def get_imm_SB(imm10, lineno):
     try:
-        imm10 = int(imm)
+        imm10 = int(imm10)
     except:
         msg = "Invalid immediate specified."
-        return False, imm, msg
+        return False, imm10, msg
     '''
     The SB type encodes instructions BEQ, BNE, BLT, BLTU, BGE, BGEU.
     The 12 bit immediate is encodes a signed offset in multiples of two.
@@ -319,10 +363,14 @@ def get_imm_SB(p):
     IMM_MIN = -0b1000000000000
 
     if (imm10 > IMM_MAX) or (imm10 < IMM_MIN):
-        cp.cprint_warn("Warning:" + str(p.lineno(1)) + ":" +
+        cp.cprint_warn("Warning:" + str(lineno) + ":" +
                        "Immediate is too big, will overflow.")
     # Convert to 2's complement binary
     imm2 = format(imm10 if imm10 >= 0 else (1 << 13) + imm10, '013b')
+    if imm2[-1] != '0':
+        cp.cprint_warn("Warning:" + str(lineno) + ":" +
+                       "Immediate not 2 bytes aligned. Last bit will" +
+                       "be dropped.")
     imm2 = imm2[0:12]
     # Convert immediate back to base 10 from base 2
     # p[0] = int(imm2, 2)
@@ -350,7 +398,171 @@ def p_error(p):
                        "Did you end with a newline?")
 
 
+def encode_offset(ltokens, address, target):
+    '''
+    In instructions having label, this function calculates
+    the value of the offset that has to be encoded inplace of the
+    the label.
+    It uses the current address of the instruction and the target address
+    to calculate the difference and encode the offset in binary
+
+    returns: immediate offset in binary
+    '''
+    # Offset address, should be divisible by 2 (2-byte aligned)
+    offset = target - address
+    assert(offset % 2 == 0)
+    lineno = ltokens['lineno']
+    if ltokens['opcode'] == mcc.INSTR_JAL:
+        '''
+        The immediate is 20 bits long and encodes the offset
+        in multiples of two - meaning that the lowest bit is
+        assumed to be 0. That is, 4 (0100) will be encoded as
+        (0010).
+        The immediate is added to PC to get the target address
+        '''
+        ret, imm, msg = get_imm_UJ(offset, lineno)
+        if not ret:
+            # Label translation should not raise errors,
+            # Warnings make sense.
+            cp.cprint_fail("Internal error:" +
+                          str(tokens['lineno']) + ":" + msg)
+            exit(1)
+        result = {
+            'opcode': ltokens['opcode'],
+            'rd': ltokens['rd'],
+            'imm': imm,
+            'lineno': lineno
+        }
+
+    elif ltokens['opcode'] in mcc.INSTR_TYPE_SB:
+        ret, imm, msg = get_imm_SB(offset, lineno)
+        if not ret:
+            cp.cprint_fail("Internal error:" + str(lineno) + ":" + msg)
+            exit(1)
+        result = {
+            'opcode': ltokens['opcode'],
+            'rs1': ltokens['rs1'],
+            'rs2': ltokens['rs2'],
+            'imm': imm,
+            'lineno': lineno
+        }
+    else:
+        cp.cprint_fail("Error: " + str(lineno) + " : " +
+                       "Label not supported in '" +
+                       str(ltokens['opcode']) + "'")
+
+    return result
+
+
 parser = yacc.yacc()
+
+'''
+First pass of assembling:
+Address and label resolution
+'''
+
+
+def parse_pass_one(fin, args):
+    address = 0
+    symbols_table = {}
+    # Suppress instruction warnings
+    prev_warn = cp.warn
+    prev_warn32 = cp.warn32
+    cp.warn = False
+    cp.warn32 = False
+    for line in fin:
+        result = parser.parse(line)
+        if result["tokens"] is None:
+            continue
+
+        if result['type'] is 'non_label':
+            address += 4
+            continue
+
+        if not result['tokens']['label'] in symbols_table:
+            symbols_table[result['tokens']['label']] = address
+        else:
+            cp.cprint_fail("Error: " + str(result['tokens']['lineno']) +
+                           " : Redeclaration of label '" +
+                           str(result['tokens']) + "'.")
+            exit(1)
+    # Restore warning state
+    cp.warn = prev_warn
+    cp.warn32 = prev_warn32
+    if args['echo_symbols']:
+        cp.cprint_msgb("Symbols and Addresses:")
+        cp.cprint_msgb(str(symbols_table))
+    return symbols_table
+
+
+def parse_pass_two(fin, fout, symbols_table, args):
+    fin.seek(0, 0)
+    # Reset line number state
+    reset_lineno()
+    address = 0
+    for line in fin:
+        result = parser.parse(line)
+        if result["tokens"] is None:
+            continue
+
+        if result['type'] is 'label':
+            continue
+
+        instr = None
+        result = result['tokens']
+        if 'label' in result:
+            if result['label'] not in symbols_table:
+                cp.cprint_fail("Error: " + str(result['lineno']) +
+                               " : Label used but never defined '" +
+                               str(result['label']) + "'.")
+                exit(1)
+            result = encode_offset(
+                result, address, symbols_table[result['label']])
+        if result:
+            instr, instr_dict = mcg.convert_to_binary(result)
+        if not instr:
+            continue
+
+        # Use hex instead of binary
+        if args['hex']:
+            instr = '%08X' % int(instr, 2)
+        # Echo to console
+        if args['echo']:
+            cp.cprint_msgb(str(result['lineno']) + " " + str(instr))
+        if args['tokenize']:
+            pprint(instr_dict)
+
+        fout.write(instr + '\n')
+        address += 4
+
+
+def parse_input(infile, **kwargs):
+    if kwargs['no_color']:
+        cp.no_color = True
+    if kwargs['no_32']:
+        cp.warn32 = False
+    fin = None
+    try:
+        fin = open(infile, 'r')
+    except IOError:
+        cp.cprint_fail("Error: File does not seem to exist or" +
+                       " you do not have the required permissions.")
+        return 1
+
+    outfile = kwargs['outfile']
+    fout = None
+    try:
+        fout = open(outfile, 'w')
+    except IOError:
+        cp.cprint_fail("Error: Could not create '" + outfile + "' for output")
+        return 1
+
+    # Pass 1: Address resolution of labels
+    symbols_table = parse_pass_one(fin, kwargs)
+    # Pass 2: Mapping instructions to binary coding
+    parse_pass_two(fin, fout, symbols_table, kwargs)
+    fout.close()
+    fin.close()
 
 
 def main():
@@ -360,7 +572,7 @@ def main():
     try:
         fin = open(sys.argv[1], 'r')
     except IOError:
-        print("File does not seem to exist or" +
+        cprint.cprint_fail("File does not seem to exist or" +
               " you do not have the required permissions.")
         return 1
 
