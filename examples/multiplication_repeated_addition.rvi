@@ -1,0 +1,31 @@
+#
+# @author:Don Dennis
+# multi_repeated_addition.rvi
+#
+# Multiplication using repeated addition
+# a*b is returned in r5
+
+# r1:a, r2:b, r3: is_neg
+# r5: ans
+_START_:
+    addi $1, $0, 10
+    addi $2, $0, -10
+    addi $3, $0, 0
+    addi $5, $0, 0
+    blt  $0, $1, LOOP
+    addi $3, $0, 1
+    addi $4, $0, -1
+    xor  $1, $1, $4
+    addi $1, $1, 1
+LOOP:
+    beq $0, $1, DONE
+    add $5, $5, $2
+    addi $1, $1, -1
+    jal $0, LOOP
+DONE: 
+    beq $0, $3, RET
+    addi $4, $0, -1
+    xor  $5, $5, $4
+    addi $5, $5, 1
+RET: 
+    jal $0, RET

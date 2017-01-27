@@ -1,4 +1,4 @@
-#!/root/.virtualenv/btp/bin/python
+#!/usr/bin/python
 # @author:Don Dennis
 # rvi.py
 #
