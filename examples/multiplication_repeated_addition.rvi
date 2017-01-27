@@ -1,6 +1,6 @@
 #
 # @author:Don Dennis
-# multi_repeated_addition.rvi
+# multiplication_repeated_addition.rvi
 #
 # Multiplication using repeated addition
 # a*b is returned in r5
