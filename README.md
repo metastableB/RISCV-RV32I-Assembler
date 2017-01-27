@@ -98,6 +98,10 @@ The language I have codded for is similar to MIPS assembly and I have included s
 - [ ] Test with windows
 - [ ] Support turning on and off of instruction selectively
 - [X] Implement `jalr`
+- [ ] Implement remaining instructions
+- [ ] Improve README
+- [ ] Document installation instructions
+- [ ] Support `include` directives
 
 Don Dennis,
 2016
