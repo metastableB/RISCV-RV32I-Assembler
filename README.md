@@ -41,7 +41,6 @@ modify instruction opcodes - a feature currently not fully supported.
 
 
 ## Installation
-### Windows
 
 #### Step 1:
 The assembler works on `Python3`. Plese create a `python3` virtualenvironment
@@ -51,8 +50,8 @@ simple as running
 virtualenv -p python3 rvi
 ```
 
-This creates a new virtual environment named `rvi`. For Anaconda, and other
-environments, plese refer to your environment specifc instructions.
+This creates a new virtual environment named `rvi`. For Windows, Anaconda, or
+other environments, plese refer to your environment specifc instructions.
  
 #### Step 2:
 
