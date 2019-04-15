@@ -55,7 +55,7 @@ other environments, plese refer to your environment specifc instructions.
  
 #### Step 2:
 
-*After activating* the environment crated in step 1, install the requirements
+*After activating* the environment created in step 1, install the requirements
 specified in `requirements.txt`. In `src/assembler`, run
 
     pip install -r requirements.txt
