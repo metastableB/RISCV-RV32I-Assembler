@@ -113,7 +113,7 @@ optional arguments:
 
 ## Programming in Assembly
 The language I have designed for is similar to MIPS assembly and I have included
-some examples in the  `samples/` drectory. Each statement should be in one line
+some examples in the  `examples/` drectory. Each statement should be in one line
 and the new line character is used to mark the end of a statement.
 
 **WARNING** I have not tested how the assembler behaves in Windows line
