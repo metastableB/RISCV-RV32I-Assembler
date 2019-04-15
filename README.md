@@ -1,9 +1,23 @@
 # RVI
-A simple assembler for the `RV32I` instruction subset. This project in no sense is aimed at being a full assembler and the primary motive for developing this is so that it serves as an aid for the hardware development project we are doing. This assembler does not support any form of stack manipulation, space allocation and other essential features of any regular assembler and does not intend to support these 'essential' features in the near future. My primary motivation for building this assembler was to make one to one mappings between assembly level coding and the corresponding binary level coding. This is particularly useful when simulating or testing a new RV32I hardware design that only partially supports the instruction set.
+A simple assembler for the `RV32I` instruction subset. This project in no sense
+is aimed at being a full assembler and the primary motive for developing this
+is so that it serves as an aid for the hardware development project we are
+doing. This assembler does not support any form of stack manipulation, space
+allocation and other essential features of any regular assembler and does not
+intend to support these 'essential' features in the near future. My primary
+motivation for building this assembler was to make one to one mappings between
+assembly level coding and the corresponding binary level coding. This is
+particularly useful when simulating or testing a new RV32I hardware design that
+only partially supports the instruction set.
 
-Here you can perform the one to one mapping as well as see the tokenized values independently to verify whether your processor is treating the binary values as it ought to. Further, simple self contained programs can be run - those programs that do not assume a stack setup or a external call to its `main` or `start` label.
+Here you can perform the one to one mapping as well as see the tokenized values
+independently to verify whether your processor is treating the binary values as
+it ought to. Further, simple self contained programs can be run - those
+programs that do not assume a stack setup or a external call to its `main` or
+`start` label.
 
-The assembler aims to allow for selectively turning off instruction and easily modify instruction opcodes - a feature currently not fully supported.
+The assembler aims to allow for selectively turning off instruction and easily
+modify instruction opcodes - a feature currently not fully supported.
 
 ## Supported Instructions
 
@@ -30,31 +44,44 @@ The assembler aims to allow for selectively turning off instruction and easily m
 ### Windows
 
 #### Step 1:
-The assembler works on `Python3`. Please down the python3 installer for your machine from here.
+The assembler works on `Python3`. Plese create a `python3` virtualenvironment
+in your system. For linux systems with `virtualenv` installed, this is as
+simple as running
+```
+virtualenv -p python3 rvi
+```
+
+This creates a new virtual environment named `rvi`. For Anaconda, and other
+environments, plese refer to your environment specifc instructions.
+ 
 #### Step 2:
-The python package installed in the above should have installed a shell/command prompt. Open it up and `cd` to the `src/assembler` directory. Type 
-(make sure you are in `src/assembler`)
+
+*After activating* the environment crated in step 1, install the requirements
+specified in `requirements.txt`. In `src/assembler`, run
 
     pip install -r requirements.txt
 
-This will install some required libraries for the assembler to work. If the installation works without any error, you are done!
-
-
 ## Usage
 
-In the simplest case, the usage is as follows. Open up the python shell and `cd` to the `src/assembler` directory. To assemble a input file `INP.rvi`, type
+In the simplest case, the usage is as follows. `cd` to the `src/assembler`
+directory. To assemble a input file `INP.rvi`, type
 
     $ python rvi.py INP.rvi
 
-where the `.rvi` extension has no special meaning, and any type of file will actually do.
+where the `.rvi` extension has no special meaning, and any type of file will
+actually do.
 
-This will create a output file named `a.b` with the binary code. If you want to specify a custom output file name, please use the `-o OUTFILE` option as follows.
+This will create a output file named `a.b` with the binary code. If you want to
+specify a custom output file name, please use the `-o OUTFILE` option as
+follows.
 
     $ python rvi.py INP.rvi -o OUTFILE
 
 This will write the output to OUTFILE instead of `a.b`. 
 
-By default, the output is written in binary - one instruction per line. If you want the output to be in hex rather than in binary, please use the `-x` flag as follows.
+By default, the output is written in binary - one instruction per line. If you
+want the output to be in hex rather than in binary, please use the `-x` flag as
+follows.
 
     $ python rvi.py -o OUTFILE -x INP.rvi
 
@@ -85,9 +112,14 @@ optional arguments:
 ```
 
 ## Programming in Assembly
-The language I have codded for is similar to MIPS assembly and I have included some `samples/` for your perusal. Each statement should be in one line and the new line character is used to mark the end of a statement.
+The language I have designed for is similar to MIPS assembly and I have included
+some examples in the  `samples/` drectory. Each statement should be in one line
+and the new line character is used to mark the end of a statement.
 
-**WARNING** I have not tested how the assembler behaves in Windows line endings. I have tried to make sure this does not become a problem but in case you face any problem, please use an editor which supports UNIX file ending like *notepad++* or *sublimetext* and raise an issue regarding the same.
+**WARNING** I have not tested how the assembler behaves in Windows line
+endings. I have tried to make sure this does not become a problem but in case
+you face any problem, please use an editor which supports UNIX file ending like
+*notepad++* or *sublimetext* and raise an issue regarding the same.
 
 ## TODO
 - [X] In the parser, for each statement, check if all the tokens are valid
