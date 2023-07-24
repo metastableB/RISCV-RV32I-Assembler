@@ -6,6 +6,7 @@
 
 
 class CPrint:
+    BLACK = ''
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
     OKGREEN = '\033[92m'
@@ -18,6 +19,27 @@ class CPrint:
     no_color = False
     warn = True
     fail = True
+    show_print = True
+
+    message = ""
+    colors = {
+        BLACK: "black",
+        HEADER: "pink",
+        OKBLUE: "blue",
+        OKGREEN: "green",
+        WARNING: "orange",
+        FAIL: "red",
+        BOLD + FAIL: "red"
+    }
+    color = colors[BLACK]
+
+    def cprint_consume_msg(self):
+        self.failed = False
+        message = CPrint.message
+        color = CPrint.color
+        CPrint.message = ""
+        CPrint.color = CPrint.colors[self.BLACK]
+        return color, message
 
     def cprint_cus(self, bc, msg):
         s = bc
@@ -25,7 +47,12 @@ class CPrint:
         if self.no_color:
             s = ''
             e = ''
-        print(s + msg + e)
+
+        if self.show_print:
+            print(s + msg + e)
+
+        CPrint.message = msg
+        CPrint.color = CPrint.colors[bc]
 
     def cprint(self, msg):
         print(msg)
